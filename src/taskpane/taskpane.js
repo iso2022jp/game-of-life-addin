@@ -15,6 +15,9 @@ const COLORS = [
 
 const propertyToState = props => +(props.format.fill.color === COLORS[LIVE])
 
+let currentGame = null
+let currentTimer = null
+
 const load = async (context, range) => {
 
   range.load(['address', 'columnCount', 'rowCount'])
@@ -42,8 +45,14 @@ const load = async (context, range) => {
 
 }
 
-const stop = () => {
+const step = () => {
+  console.log('Step')
 
+}
+
+const stop = () => {
+  currentTimer && clearInterval(currentTimer)
+  currentTimer = null
 }
 
 Office.onReady(info => {
@@ -65,7 +74,15 @@ export async function run() {
 
       const game = await load(context, range)
 
+      currentGame = game
+      
+      console.log('Loaded')
       console.log(game)
+
+      context.trackedObjects.add(range)
+      context.sync()
+
+      currentTimer = setInterval(step, 1000)
       
     });
   } catch (error) {
