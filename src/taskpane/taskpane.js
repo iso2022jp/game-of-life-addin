@@ -32,6 +32,7 @@ const RULE = [
 const range = (count, mapping) => Array.from({length: count}, (_, i) => mapping(i))
 
 const propertyToState = props => +(props.format.fill.color === COLORS[LIVE])
+const stateToProperty = state => ({ format: { fill: {color: COLORS[state] }} })
 
 const advance = (state, lives) => RULE[state][lives]
 
@@ -78,6 +79,17 @@ const load = async (context, range) => {
 
 }
 
+const update = async (context, range, states, prevStates) => {
+  
+  const cellProps = states.map((row, y) => row.map((state, x) => {
+    const prevState = prevStates[y][x]
+    return state === prevState ? {} : stateToProperty(state)
+  }))
+
+  range.setCellProperties(cellProps)  
+  await context.sync()
+}
+
 const step = () => {
   console.log('Step')
 
@@ -88,6 +100,8 @@ const step = () => {
     ...currentGame,
     states,
   }
+
+  update(game.context, game.range, states, currentGame.states)
 
   currentGame = game
 
