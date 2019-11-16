@@ -13,7 +13,40 @@ const COLORS = [
   '#000000', // live
 ]
 
+const NEIGHBORS = [
+  [-1, -1],
+  [0, -1],
+  [1, -1],
+  [-1, 0],
+  [1, 0],
+  [-1, 1],
+  [0, 1],
+  [1, 1],
+]
+
+const RULE = [
+  [ 0, 0, 0, 1, 0, 0, 0, 0, 0, ], // dead
+  [ 0, 0, 1, 1, 0, 0, 0, 0, 0, ], // live
+]
+
+const range = (count, mapping) => Array.from({length: count}, (_, i) => mapping(i))
+
 const propertyToState = props => +(props.format.fill.color === COLORS[LIVE])
+
+const advance = (state, lives) => RULE[state][lives]
+
+const countNeighbourSurvivors = (states, x, y) => {
+  return NEIGHBORS.reduce((count, [dx, dy]) => {
+    return count + ((states[y + dy] || [])[x + dx] || DEAD)
+  }, 0)
+}
+
+const genarate = (states, cx, cy) => {
+  return range(cy, y => range(cx, x => {
+    const lives = countNeighbourSurvivors(states, x, y)
+    return advance(states[y][x], lives)
+  }))
+}
 
 let currentGame = null
 let currentTimer = null
@@ -47,6 +80,16 @@ const load = async (context, range) => {
 
 const step = () => {
   console.log('Step')
+
+  const states = genarate(currentGame.states, currentGame.cx, currentGame.cy)
+  console.log(states)
+
+  const game = {
+    ...currentGame,
+    states,
+  }
+
+  currentGame = game
 
 }
 
