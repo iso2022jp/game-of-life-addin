@@ -5,6 +5,43 @@
 
 /* global console, document, Excel, Office */
 
+const DEAD = 0
+const LIVE = 1
+
+const COLORS = [
+  '#FFFFFF', // dead
+  '#000000', // live
+]
+
+const propertyToState = props => +(props.format.fill.color === COLORS[LIVE])
+
+const load = async (context, range) => {
+
+  range.load(['address', 'columnCount', 'rowCount'])
+  const cellProps = range.getCellProperties({
+    format: {
+      fill: {
+        color: true
+      },
+    },
+  })
+
+  await context.sync()
+
+  const cx = range.columnCount
+  const cy = range.rowCount
+  const states = cellProps.value.map(row => row.map(propertyToState))
+
+  return {
+    context,
+    range,
+    cx,
+    cy,
+    states,
+  }
+
+}
+
 const stop = () => {
 
 }
@@ -26,14 +63,10 @@ export async function run() {
        */
       const range = context.workbook.getSelectedRange();
 
-      // Read the range address
-      range.load("address");
+      const game = await load(context, range)
 
-      // Update the fill color
-      range.format.fill.color = "yellow";
-
-      await context.sync();
-      console.log(`The range address was ${range.address}.`);
+      console.log(game)
+      
     });
   } catch (error) {
     console.error(error);
